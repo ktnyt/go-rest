@@ -1,11 +1,16 @@
 package rest
 
 import (
+	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/url"
 )
+
+func init() {
+	gob.Register(&DictService{})
+}
 
 // KeyError represents an existing or missing key error.
 type KeyError struct {
@@ -29,51 +34,54 @@ func (e KeyError) Error() string {
 // FilterFactory creates a filter from the given url parameters.
 type FilterFactory func(url.Values) Filter
 
-type dictService struct {
-	dict      *Dict
-	count     int
-	construct Constructor
-	factory   FilterFactory
+// DictService provides a Dict service interface.
+type DictService struct {
+	Dict  *Dict
+	Count int
+
+	build   ModelBuilder
+	factory FilterFactory
 }
 
 // NewDictService returns a new Dict service.
-func NewDictService(construct Constructor, factory FilterFactory) Service {
-	return &dictService{
-		dict:  NewDict(),
-		count: 0,
-
-		construct: construct,
-		factory:   factory,
+func NewDictService(build ModelBuilder, factory FilterFactory) Service {
+	return &DictService{
+		Dict:    NewDict(),
+		Count:   0,
+		build:   build,
+		factory: factory,
 	}
 }
 
-func (s *dictService) Browse(params url.Values) ([]Model, error) {
-	indices := s.dict.Search(s.factory(params))
+// Browse Dict values filtered by URL parameters.
+func (s *DictService) Browse(params url.Values) ([]Model, error) {
+	indices := s.Dict.Search(s.factory(params))
 	list := make([]Model, len(indices))
 	for j, i := range indices {
-		list[j] = s.dict.Values[i]
+		list[j] = s.Dict.Values[i]
 	}
 	return list, nil
 }
 
-func (s *dictService) Delete(params url.Values) ([]Model, error) {
-	indices := s.dict.Search(s.factory(params))
+// Delete Dict values filtered by URL parameters.
+func (s *DictService) Delete(params url.Values) ([]Model, error) {
+	indices := s.Dict.Search(s.factory(params))
 
-	if len(indices) == s.dict.Length() {
-		list := s.dict.Values
-		s.dict.Clear()
+	if len(indices) == s.Dict.Len() {
+		list := s.Dict.Values
+		s.Dict.Clear()
 		return list, nil
 	}
 
 	keys := make([]string, len(indices))
 	for j, i := range indices {
-		keys[j] = s.dict.Keys[i]
+		keys[j] = s.Dict.Keys[i]
 	}
 
 	list := make([]Model, len(indices))
 
 	for i, key := range keys {
-		model := s.dict.Remove(key)
+		model := s.Dict.Remove(key)
 		if model == nil {
 			return nil, NewKeyError(key, true)
 		}
@@ -83,44 +91,48 @@ func (s *dictService) Delete(params url.Values) ([]Model, error) {
 	return list, nil
 }
 
-func (s *dictService) Create(reader io.Reader) (Model, error) {
-	model := s.construct()
+// Create and store a new value.
+func (s *DictService) Create(reader io.Reader) (Model, error) {
+	model := s.build()
 	if err := json.NewDecoder(reader).Decode(&model); err != nil {
 		return nil, err
 	}
 
-	key := model.MakeKey(s.count)
+	key := model.MakeKey(s.Count)
 	if err := model.Validate(); err != nil {
 		return nil, err
 	}
 
-	if !s.dict.Insert(key, model) {
+	if !s.Dict.Insert(key, model) {
 		return nil, NewKeyError(key, false)
 	}
 
-	s.count++
+	s.Count++
 
 	return model, nil
 }
 
-func (s *dictService) Select(key string) (Model, error) {
-	model := s.dict.Get(key)
+// Select a value identified by the given key.
+func (s *DictService) Select(key string) (Model, error) {
+	model := s.Dict.Get(key)
 	if model == nil {
 		return nil, NewKeyError(key, true)
 	}
 	return model, nil
 }
 
-func (s *dictService) Remove(key string) (Model, error) {
-	model := s.dict.Remove(key)
+// Remove a value identified by the given key.
+func (s *DictService) Remove(key string) (Model, error) {
+	model := s.Dict.Remove(key)
 	if model == nil {
 		return nil, NewKeyError(key, true)
 	}
 	return model, nil
 }
 
-func (s *dictService) Update(key string, reader io.Reader) (Model, error) {
-	model := s.construct()
+// Update an entire value identified by the given key.
+func (s *DictService) Update(key string, reader io.Reader) (Model, error) {
+	model := s.build()
 	if err := json.NewDecoder(reader).Decode(&model); err != nil {
 		return nil, err
 	}
@@ -129,25 +141,26 @@ func (s *dictService) Update(key string, reader io.Reader) (Model, error) {
 		return nil, err
 	}
 
-	if !s.dict.Set(key, model) {
+	if !s.Dict.Set(key, model) {
 		return nil, NewKeyError(key, true)
 	}
 
 	return model, nil
 }
 
-func (s *dictService) Modify(key string, reader io.Reader) (Model, error) {
-	model := s.construct()
+// Modify part of a value identified by the given key.
+func (s *DictService) Modify(key string, reader io.Reader) (Model, error) {
+	model := s.build()
 	if err := json.NewDecoder(reader).Decode(&model); err != nil {
 		return nil, err
 	}
 
-	index := s.dict.Index(key)
-	if index == s.dict.Length() || s.dict.Keys[index] != key {
+	index := s.Dict.Index(key)
+	if index == s.Dict.Len() || s.Dict.Keys[index] != key {
 		return nil, fmt.Errorf("key '%s' does not exist", key)
 	}
 
-	value := s.dict.Values[index]
+	value := s.Dict.Values[index]
 
 	if err := value.Merge(model); err != nil {
 		return nil, err
@@ -157,7 +170,7 @@ func (s *dictService) Modify(key string, reader io.Reader) (Model, error) {
 		return nil, err
 	}
 
-	s.dict.Values[index] = value
+	s.Dict.Values[index] = value
 
 	return value, nil
 }

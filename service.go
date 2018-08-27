@@ -15,3 +15,6 @@ type Service interface {
 	Update(string, io.Reader) (Model, error)
 	Modify(string, io.Reader) (Model, error)
 }
+
+// ServiceBuilder will construct a Service given no arguments.
+type ServiceBuilder func() Service

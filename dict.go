@@ -32,7 +32,7 @@ func (d *Dict) Index(key string) int {
 
 // Get a value for a given key. Returns nil if the key does not exist.
 func (d *Dict) Get(key string) Model {
-	if i := d.Index(key); i < d.Length() && d.Keys[i] == key {
+	if i := d.Index(key); i < d.Len() && d.Keys[i] == key {
 		return d.Values[i]
 	}
 	return nil
@@ -40,7 +40,7 @@ func (d *Dict) Get(key string) Model {
 
 // Set a value for the given key. Returns false if the key does not exist.
 func (d *Dict) Set(key string, value Model) bool {
-	if i := d.Index(key); i < d.Length() && d.Keys[i] == key {
+	if i := d.Index(key); i < d.Len() && d.Keys[i] == key {
 		d.Values[i] = value
 		return true
 	}
@@ -49,7 +49,7 @@ func (d *Dict) Set(key string, value Model) bool {
 
 // Insert a value for the given key. Returns false if the key exists.
 func (d *Dict) Insert(key string, value Model) bool {
-	if d.Length() == 0 {
+	if d.Len() == 0 {
 		d.Keys = append(d.Keys, key)
 		d.Values = append(d.Values, value)
 		return true
@@ -57,7 +57,7 @@ func (d *Dict) Insert(key string, value Model) bool {
 
 	i := d.Index(key)
 
-	if i == d.Length() {
+	if i == d.Len() {
 		d.Keys = append(d.Keys, key)
 		d.Values = append(d.Values, value)
 
@@ -81,7 +81,7 @@ func (d *Dict) Insert(key string, value Model) bool {
 
 // Remove a value for the given key. Returns nil if the key does not exist.
 func (d *Dict) Remove(key string) Model {
-	if i := d.Index(key); i < d.Length() && d.Keys[i] == key {
+	if i := d.Index(key); i < d.Len() && d.Keys[i] == key {
 		copy(d.Keys[i:], d.Keys[i+1:])
 		d.Keys[len(d.Keys)-1] = ""
 		d.Keys = d.Keys[:len(d.Keys)-1]
@@ -122,7 +122,7 @@ func (d *Dict) Search(f Filter) []int {
 	return indices
 }
 
-// Length returns the length of the Dict (keys).
-func (d *Dict) Length() int {
+// Len returns the length of the Dict (keys).
+func (d *Dict) Len() int {
 	return len(d.Keys)
 }

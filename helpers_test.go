@@ -1,13 +1,19 @@
 package rest_test
 
 import (
+	"encoding/gob"
 	"fmt"
+	"net/url"
 	"strconv"
 	"time"
 
 	"github.com/gofrs/uuid"
 	rest "github.com/ktnyt/go-rest"
 )
+
+func init() {
+	gob.Register(&Todo{})
+}
 
 type Todo struct {
 	Key       string
@@ -44,7 +50,7 @@ func (t *Todo) Merge(other rest.Model) error {
 	}
 }
 
-func Construct() rest.Model {
+func NewTodo() rest.Model {
 	return &Todo{}
 }
 
@@ -62,4 +68,27 @@ func InvalidTodo() *Todo {
 		CreatedAt: time.Now(),
 		Done:      false,
 	}
+}
+
+func Filter(params url.Values) rest.Filter {
+	return func(model rest.Model) bool {
+		done := params.Get("done")
+		if len(done) > 0 {
+			if done == "true" {
+				return model.(*Todo).Done
+			}
+			if done == "false" {
+				return !model.(*Todo).Done
+			}
+		}
+		return true
+	}
+}
+
+var trueParams = url.Values{"done": []string{"true"}}
+var falseParams = url.Values{"done": []string{"false"}}
+var emptyParams = url.Values{}
+
+func NewTodoDictService() rest.Service {
+	return rest.NewDictService(NewTodo, Filter)
 }

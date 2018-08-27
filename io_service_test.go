@@ -2,65 +2,52 @@ package rest_test
 
 import (
 	"bytes"
+	"encoding/gob"
 	"encoding/json"
+	"log"
 	"testing"
 
 	rest "github.com/ktnyt/go-rest"
 	"github.com/stretchr/testify/require"
 )
 
-func TestDict(t *testing.T) {
-	d := rest.NewDict()
-	todo := RandomTodo()
-	key := todo.MakeKey(d.Len())
-
-	t.Run("is empty on creation", func(t *testing.T) {
-		require.Equal(t, d.Len(), 0)
-	})
-
-	t.Run("can insert values", func(t *testing.T) {
-		require.True(t, d.Insert(key, todo))
-	})
-
-	t.Run("can get a value", func(t *testing.T) {
-		t.Run("for existing key", func(t *testing.T) {
-			require.Equal(t, todo, d.Get(key))
-		})
-		t.Run("only for existing key", func(t *testing.T) {
-			require.Nil(t, d.Get("foo"))
-		})
-	})
-
-	t.Run("can set a value", func(t *testing.T) {
-		t.Run("for existing key", func(t *testing.T) {
-			require.True(t, d.Set(key, todo))
-		})
-		t.Run("only for existing key", func(t *testing.T) {
-			require.False(t, d.Set("foo", todo))
-		})
-	})
-
-	t.Run("can search values", func(t *testing.T) {
-		require.NotZero(t, len(d.Search(func(model rest.Model) bool {
-			return !model.(*Todo).Done
-		})))
-		require.Zero(t, len(d.Search(func(model rest.Model) bool {
-			return model.(*Todo).Done
-		})))
-	})
-
-	t.Run("can remove a value", func(t *testing.T) {
-		t.Run("for existing key", func(t *testing.T) {
-			require.Equal(t, todo, d.Remove(key))
-		})
-		t.Run("only for existing key", func(t *testing.T) {
-			require.Nil(t, d.Remove(key))
-		})
-	})
+type BufferIOHandler struct {
+	buffer []byte
+	build  rest.ServiceBuilder
 }
 
-func TestDictService(t *testing.T) {
-	service := rest.NewDictService(NewTodo, Filter)
+func NewBufferIOHandler(build rest.ServiceBuilder) rest.IOHandler {
+	handler := &BufferIOHandler{build: build}
+	service := handler.build()
+
+	if err := handler.Save(service); err != nil {
+		log.Fatal(err)
+	}
+
+	return handler
+}
+
+func (h *BufferIOHandler) Save(service rest.Service) error {
+	writer := new(bytes.Buffer)
+	if err := gob.NewEncoder(writer).Encode(service.(*rest.DictService)); err != nil {
+		return err
+	}
+	h.buffer = writer.Bytes()
+	return nil
+}
+
+func (h *BufferIOHandler) Load() (rest.Service, error) {
+	service := h.build()
+	reader := bytes.NewBuffer(h.buffer)
+	if err := gob.NewDecoder(reader).Decode(service.(*rest.DictService)); err != nil {
+		return nil, err
+	}
+	return service, nil
+}
+
+func TestIOService(t *testing.T) {
+	handler := NewBufferIOHandler(NewTodoDictService)
+	service := rest.NewIOService(handler)
 	count := 10
 	trueKeys := make([]string, 0)
 	falseKeys := make([]string, 0)

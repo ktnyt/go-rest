@@ -12,5 +12,5 @@ type Model interface {
 	Merge(Model) error
 }
 
-// Constructor will construct a Model given no arguments.
-type Constructor func() Model
+// ModelBuilder will construct a Model given no arguments.
+type ModelBuilder func() Model
