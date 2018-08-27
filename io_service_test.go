@@ -29,7 +29,7 @@ func NewBufferIOHandler(build rest.ServiceBuilder) rest.IOHandler {
 
 func (h *BufferIOHandler) Save(service rest.Service) error {
 	writer := new(bytes.Buffer)
-	if err := gob.NewEncoder(writer).Encode(service.(*rest.DictService)); err != nil {
+	if err := gob.NewEncoder(writer).Encode(service); err != nil {
 		return err
 	}
 	h.buffer = writer.Bytes()
@@ -39,7 +39,7 @@ func (h *BufferIOHandler) Save(service rest.Service) error {
 func (h *BufferIOHandler) Load() (rest.Service, error) {
 	service := h.build()
 	reader := bytes.NewBuffer(h.buffer)
-	if err := gob.NewDecoder(reader).Decode(service.(*rest.DictService)); err != nil {
+	if err := gob.NewDecoder(reader).Decode(service); err != nil {
 		return nil, err
 	}
 	return service, nil
