@@ -17,10 +17,10 @@ type ioService struct {
 
 // NewIOService returns a new IO service.
 func NewIOService(handler IOHandler) Service {
-	return &ioService{handler: handler}
+	return ioService{handler: handler}
 }
 
-func (s *ioService) Browse(params url.Values) ([]Model, error) {
+func (s ioService) Browse(params url.Values) ([]Model, error) {
 	service, err := s.handler.Load()
 	if err != nil {
 		return nil, err
@@ -29,7 +29,7 @@ func (s *ioService) Browse(params url.Values) ([]Model, error) {
 	return service.Browse(params)
 }
 
-func (s *ioService) Delete(params url.Values) ([]Model, error) {
+func (s ioService) Delete(params url.Values) ([]Model, error) {
 	service, err := s.handler.Load()
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func (s *ioService) Delete(params url.Values) ([]Model, error) {
 	return list, nil
 }
 
-func (s *ioService) Create(reader io.Reader) (Model, error) {
+func (s ioService) Create(reader io.Reader) (Model, error) {
 	service, err := s.handler.Load()
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func (s *ioService) Create(reader io.Reader) (Model, error) {
 	return model, nil
 }
 
-func (s *ioService) Select(key string) (Model, error) {
+func (s ioService) Select(key string) (Model, error) {
 	service, err := s.handler.Load()
 	if err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func (s *ioService) Select(key string) (Model, error) {
 	return service.Select(key)
 }
 
-func (s *ioService) Remove(key string) (Model, error) {
+func (s ioService) Remove(key string) (Model, error) {
 	service, err := s.handler.Load()
 	if err != nil {
 		return nil, err
@@ -92,7 +92,7 @@ func (s *ioService) Remove(key string) (Model, error) {
 	return model, nil
 }
 
-func (s *ioService) Update(key string, reader io.Reader) (Model, error) {
+func (s ioService) Update(key string, reader io.Reader) (Model, error) {
 	service, err := s.handler.Load()
 	if err != nil {
 		return nil, err
@@ -110,7 +110,7 @@ func (s *ioService) Update(key string, reader io.Reader) (Model, error) {
 	return model, nil
 }
 
-func (s *ioService) Modify(key string, reader io.Reader) (Model, error) {
+func (s ioService) Modify(key string, reader io.Reader) (Model, error) {
 	service, err := s.handler.Load()
 	if err != nil {
 		return nil, err
