@@ -2,8 +2,8 @@ package rest
 
 import "net/http"
 
-// Handler defines a set of REST endpoint handlers.
-type Handler interface {
+// Interface defines a set of REST endpoint handlers.
+type Interface interface {
 	// Browse multiple objects filtered by the URL parameters. (GET)
 	Browse(http.ResponseWriter, *http.Request)
 
