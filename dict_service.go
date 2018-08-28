@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 )
 
 func init() {
@@ -81,11 +82,9 @@ func (s *DictService) Delete(ctx context.Context) ([]Model, error) {
 	list := make([]Model, len(indices))
 
 	for i, key := range keys {
-		model := s.Dict.Remove(key)
-		if model == nil {
-			return nil, NewKeyError(key, true)
+		if model := s.Dict.Remove(key); model != nil {
+			list[i] = model
 		}
-		list[i] = model
 	}
 
 	return list, nil
@@ -95,7 +94,7 @@ func (s *DictService) Delete(ctx context.Context) ([]Model, error) {
 func (s *DictService) Create(reader io.Reader) (Model, error) {
 	model := s.build()
 	if err := json.NewDecoder(reader).Decode(&model); err != nil {
-		return nil, err
+		return nil, NewServiceError(err, http.StatusBadRequest)
 	}
 
 	key := model.MakeKey(s.Count)
@@ -104,7 +103,8 @@ func (s *DictService) Create(reader io.Reader) (Model, error) {
 	}
 
 	if !s.Dict.Insert(key, model) {
-		return nil, NewKeyError(key, false)
+		err := NewKeyError(key, false)
+		return nil, NewServiceError(err, http.StatusBadRequest)
 	}
 
 	s.Count++
@@ -116,7 +116,8 @@ func (s *DictService) Create(reader io.Reader) (Model, error) {
 func (s *DictService) Select(key string) (Model, error) {
 	model := s.Dict.Get(key)
 	if model == nil {
-		return nil, NewKeyError(key, true)
+		err := NewKeyError(key, false)
+		return nil, NewServiceError(err, http.StatusBadRequest)
 	}
 	return model, nil
 }
@@ -125,7 +126,8 @@ func (s *DictService) Select(key string) (Model, error) {
 func (s *DictService) Remove(key string) (Model, error) {
 	model := s.Dict.Remove(key)
 	if model == nil {
-		return nil, NewKeyError(key, true)
+		err := NewKeyError(key, false)
+		return nil, NewServiceError(err, http.StatusBadRequest)
 	}
 	return model, nil
 }
@@ -134,15 +136,16 @@ func (s *DictService) Remove(key string) (Model, error) {
 func (s *DictService) Update(key string, reader io.Reader) (Model, error) {
 	model := s.build()
 	if err := json.NewDecoder(reader).Decode(&model); err != nil {
-		return nil, err
+		return nil, NewServiceError(err, http.StatusBadRequest)
 	}
 
 	if err := model.Validate(); err != nil {
-		return nil, err
+		return nil, NewServiceError(err, http.StatusBadRequest)
 	}
 
 	if !s.Dict.Set(key, model) {
-		return nil, NewKeyError(key, true)
+		err := NewKeyError(key, false)
+		return nil, NewServiceError(err, http.StatusBadRequest)
 	}
 
 	return model, nil
@@ -152,22 +155,23 @@ func (s *DictService) Update(key string, reader io.Reader) (Model, error) {
 func (s *DictService) Modify(key string, reader io.Reader) (Model, error) {
 	model := s.build()
 	if err := json.NewDecoder(reader).Decode(&model); err != nil {
-		return nil, err
+		return nil, NewServiceError(err, http.StatusBadRequest)
 	}
 
 	index := s.Dict.Index(key)
 	if index == s.Dict.Len() || s.Dict.Keys[index] != key {
-		return nil, fmt.Errorf("key '%s' does not exist", key)
+		err := NewKeyError(key, false)
+		return nil, NewServiceError(err, http.StatusBadRequest)
 	}
 
 	value := s.Dict.Values[index]
 
 	if err := value.Merge(model); err != nil {
-		return nil, err
+		return nil, NewServiceError(err, http.StatusBadRequest)
 	}
 
 	if err := value.Validate(); err != nil {
-		return nil, err
+		return nil, NewServiceError(err, http.StatusBadRequest)
 	}
 
 	s.Dict.Values[index] = value
