@@ -67,14 +67,14 @@ func TestIOService(t *testing.T) {
 
 	t.Run("can browse data", func(t *testing.T) {
 		t.Run("with filters", func(t *testing.T) {
-			trueModels, err := service.Browse(trueParams)
+			trueModels, err := service.Browse(trueContext)
 			require.NoError(t, err)
 
 			for _, model := range trueModels {
 				trueKeys = append(trueKeys, model.(*Todo).Key)
 			}
 
-			falseModels, err := service.Browse(falseParams)
+			falseModels, err := service.Browse(falseContext)
 			require.NoError(t, err)
 
 			for _, model := range falseModels {
@@ -86,7 +86,7 @@ func TestIOService(t *testing.T) {
 		})
 
 		t.Run("without filters", func(t *testing.T) {
-			models, err := service.Browse(emptyParams)
+			models, err := service.Browse(emptyContext)
 			require.NoError(t, err)
 			require.Len(t, models, count)
 
@@ -203,7 +203,7 @@ func TestIOService(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			models, err := service.Browse(emptyParams)
+			models, err := service.Browse(emptyContext)
 			require.NoError(t, err)
 			require.Len(t, models, len(falseKeys))
 		})
@@ -212,7 +212,7 @@ func TestIOService(t *testing.T) {
 			_, err := service.Remove("foo")
 			require.Error(t, err)
 
-			models, err := service.Browse(emptyParams)
+			models, err := service.Browse(emptyContext)
 			require.NoError(t, err)
 			require.Len(t, models, len(falseKeys))
 		})
@@ -220,9 +220,9 @@ func TestIOService(t *testing.T) {
 
 	t.Run("can delete data", func(t *testing.T) {
 		t.Run("without filters", func(t *testing.T) {
-			_, err := service.Delete(emptyParams)
+			_, err := service.Delete(emptyContext)
 			require.NoError(t, err)
-			models, err := service.Browse(emptyParams)
+			models, err := service.Browse(emptyContext)
 			require.NoError(t, err)
 			require.Len(t, models, 0)
 		})
@@ -238,10 +238,10 @@ func TestIOService(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			trueModels, err := service.Delete(trueParams)
+			trueModels, err := service.Delete(trueContext)
 			require.NoError(t, err)
 
-			falseModels, err := service.Delete(falseParams)
+			falseModels, err := service.Delete(falseContext)
 			require.NoError(t, err)
 
 			models := append(trueModels, falseModels...)

@@ -1,14 +1,14 @@
 package rest
 
 import (
+	"context"
 	"io"
-	"net/url"
 )
 
 // Service defines interfaces for manipulating values for a persistence backend.
 type Service interface {
-	Browse(url.Values) ([]Model, error)
-	Delete(url.Values) ([]Model, error)
+	Browse(context.Context) ([]Model, error)
+	Delete(context.Context) ([]Model, error)
 	Create(io.Reader) (Model, error)
 	Select(string) (Model, error)
 	Remove(string) (Model, error)

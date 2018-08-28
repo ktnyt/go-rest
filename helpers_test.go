@@ -1,9 +1,9 @@
 package rest_test
 
 import (
+	"context"
 	"encoding/gob"
 	"fmt"
-	"net/url"
 	"strconv"
 	"time"
 
@@ -70,24 +70,26 @@ func InvalidTodo() *Todo {
 	}
 }
 
-func Filter(params url.Values) rest.Filter {
+func Filter(ctx context.Context) rest.Filter {
 	return func(model rest.Model) bool {
-		done := params.Get("done")
-		if len(done) > 0 {
+		switch done := ctx.Value("done").(type) {
+		case string:
 			if done == "true" {
 				return model.(*Todo).Done
 			}
 			if done == "false" {
 				return !model.(*Todo).Done
 			}
+			return true
+		default:
+			return true
 		}
-		return true
 	}
 }
 
-var trueParams = url.Values{"done": []string{"true"}}
-var falseParams = url.Values{"done": []string{"false"}}
-var emptyParams = url.Values{}
+var emptyContext = context.Background()
+var trueContext = context.WithValue(emptyContext, "done", "true")
+var falseContext = context.WithValue(emptyContext, "done", "false")
 
 func NewTodoDictService() rest.Service {
 	return rest.NewDictService(NewTodo, Filter)

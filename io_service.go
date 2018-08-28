@@ -1,8 +1,8 @@
 package rest
 
 import (
+	"context"
 	"io"
-	"net/url"
 )
 
 // IOHandler defines interfaces for persisting a service.
@@ -20,22 +20,22 @@ func NewIOService(handler IOHandler) Service {
 	return ioService{handler: handler}
 }
 
-func (s ioService) Browse(params url.Values) ([]Model, error) {
+func (s ioService) Browse(ctx context.Context) ([]Model, error) {
 	service, err := s.handler.Load()
 	if err != nil {
 		return nil, err
 	}
 
-	return service.Browse(params)
+	return service.Browse(ctx)
 }
 
-func (s ioService) Delete(params url.Values) ([]Model, error) {
+func (s ioService) Delete(ctx context.Context) ([]Model, error) {
 	service, err := s.handler.Load()
 	if err != nil {
 		return nil, err
 	}
 
-	list, err := service.Delete(params)
+	list, err := service.Delete(ctx)
 	if err != nil {
 		return nil, err
 	}

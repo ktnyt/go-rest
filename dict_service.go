@@ -1,11 +1,11 @@
 package rest
 
 import (
+	"context"
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/url"
 )
 
 func init() {
@@ -32,7 +32,7 @@ func (e KeyError) Error() string {
 }
 
 // FilterFactory creates a filter from the given url parameters.
-type FilterFactory func(url.Values) Filter
+type FilterFactory func(context.Context) Filter
 
 // DictService provides a Dict service interface.
 type DictService struct {
@@ -54,8 +54,8 @@ func NewDictService(build ModelBuilder, factory FilterFactory) Service {
 }
 
 // Browse Dict values filtered by URL parameters.
-func (s *DictService) Browse(params url.Values) ([]Model, error) {
-	indices := s.Dict.Search(s.factory(params))
+func (s *DictService) Browse(ctx context.Context) ([]Model, error) {
+	indices := s.Dict.Search(s.factory(ctx))
 	list := make([]Model, len(indices))
 	for j, i := range indices {
 		list[j] = s.Dict.Values[i]
@@ -64,8 +64,8 @@ func (s *DictService) Browse(params url.Values) ([]Model, error) {
 }
 
 // Delete Dict values filtered by URL parameters.
-func (s *DictService) Delete(params url.Values) ([]Model, error) {
-	indices := s.Dict.Search(s.factory(params))
+func (s *DictService) Delete(ctx context.Context) ([]Model, error) {
+	indices := s.Dict.Search(s.factory(ctx))
 
 	if len(indices) == s.Dict.Len() {
 		list := s.Dict.Values
