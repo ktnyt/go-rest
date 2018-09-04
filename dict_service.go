@@ -81,8 +81,8 @@ func (s *DictService) Delete(ctx context.Context) ([]Model, error) {
 	list := make([]Model, len(indices))
 
 	for i, key := range keys {
-		if model := s.Dict.Remove(key); model != nil {
-			list[i] = s.convert(model)
+		if value := s.Dict.Remove(key); value != nil {
+			list[i] = s.convert(value)
 		}
 	}
 
@@ -113,41 +113,41 @@ func (s *DictService) Create(reader io.Reader) (Model, error) {
 
 // Select a value identified by the given key.
 func (s *DictService) Select(key string) (Model, error) {
-	model := s.Dict.Get(key)
-	if model == nil {
+	value := s.Dict.Get(key)
+	if value == nil {
 		err := NewKeyError(key, false)
 		return nil, NewServiceError(err, http.StatusBadRequest)
 	}
-	return s.convert(model), nil
+	return s.convert(value), nil
 }
 
 // Remove a value identified by the given key.
 func (s *DictService) Remove(key string) (Model, error) {
-	model := s.Dict.Remove(key)
-	if model == nil {
+	value := s.Dict.Remove(key)
+	if value == nil {
 		err := NewKeyError(key, false)
 		return nil, NewServiceError(err, http.StatusBadRequest)
 	}
-	return s.convert(model), nil
+	return s.convert(value), nil
 }
 
 // Update an entire value identified by the given key.
 func (s *DictService) Update(key string, reader io.Reader) (Model, error) {
-	model := s.build()
-	if err := json.NewDecoder(reader).Decode(&model); err != nil {
+	value := s.build()
+	if err := json.NewDecoder(reader).Decode(&value); err != nil {
 		return nil, NewServiceError(err, http.StatusBadRequest)
 	}
 
-	if err := model.Validate(); err != nil {
+	if err := value.Validate(); err != nil {
 		return nil, NewServiceError(err, http.StatusBadRequest)
 	}
 
-	if !s.Dict.Set(key, model) {
+	if !s.Dict.Set(key, value) {
 		err := NewKeyError(key, false)
 		return nil, NewServiceError(err, http.StatusBadRequest)
 	}
 
-	return model, nil
+	return value, nil
 }
 
 // Modify part of a value identified by the given key.

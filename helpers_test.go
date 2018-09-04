@@ -71,14 +71,14 @@ func InvalidTodo() *Todo {
 }
 
 func Filter(ctx context.Context) rest.Filter {
-	return func(model interface{}) bool {
+	return func(value interface{}) bool {
 		switch done := ctx.Value("done").(type) {
 		case string:
 			if done == "true" {
-				return model.(*Todo).Done
+				return value.(*Todo).Done
 			}
 			if done == "false" {
-				return !model.(*Todo).Done
+				return !value.(*Todo).Done
 			}
 			return true
 		default:
@@ -87,8 +87,8 @@ func Filter(ctx context.Context) rest.Filter {
 	}
 }
 
-func Convert(model interface{}) rest.Model {
-	return model.(*Todo)
+func Convert(value interface{}) rest.Model {
+	return value.(*Todo)
 }
 
 var emptyContext = context.Background()

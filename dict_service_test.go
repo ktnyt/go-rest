@@ -30,31 +30,31 @@ func TestDictService(t *testing.T) {
 
 	t.Run("can browse data", func(t *testing.T) {
 		t.Run("with filters", func(t *testing.T) {
-			trueModels, err := service.Browse(trueContext)
+			trueValues, err := service.Browse(trueContext)
 			require.NoError(t, err)
 
-			for _, model := range trueModels {
-				trueKeys = append(trueKeys, model.(*Todo).Key)
+			for _, value := range trueValues {
+				trueKeys = append(trueKeys, value.(*Todo).Key)
 			}
 
-			falseModels, err := service.Browse(falseContext)
+			falseValues, err := service.Browse(falseContext)
 			require.NoError(t, err)
 
-			for _, model := range falseModels {
-				falseKeys = append(falseKeys, model.(*Todo).Key)
+			for _, value := range falseValues {
+				falseKeys = append(falseKeys, value.(*Todo).Key)
 			}
 
-			models := append(trueModels, falseModels...)
-			require.Len(t, models, count)
+			values := append(trueValues, falseValues...)
+			require.Len(t, values, count)
 		})
 
 		t.Run("without filters", func(t *testing.T) {
-			models, err := service.Browse(emptyContext)
+			values, err := service.Browse(emptyContext)
 			require.NoError(t, err)
-			require.Len(t, models, count)
+			require.Len(t, values, count)
 
-			for i, model := range models {
-				keys[i] = model.(*Todo).Key
+			for i, value := range values {
+				keys[i] = value.(*Todo).Key
 			}
 		})
 	})
@@ -166,18 +166,18 @@ func TestDictService(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			models, err := service.Browse(emptyContext)
+			values, err := service.Browse(emptyContext)
 			require.NoError(t, err)
-			require.Len(t, models, len(falseKeys))
+			require.Len(t, values, len(falseKeys))
 		})
 
 		t.Run("for existing keys only", func(t *testing.T) {
 			_, err := service.Remove("foo")
 			require.Error(t, err)
 
-			models, err := service.Browse(emptyContext)
+			values, err := service.Browse(emptyContext)
 			require.NoError(t, err)
-			require.Len(t, models, len(falseKeys))
+			require.Len(t, values, len(falseKeys))
 		})
 	})
 
@@ -185,9 +185,9 @@ func TestDictService(t *testing.T) {
 		t.Run("without filters", func(t *testing.T) {
 			_, err := service.Delete(emptyContext)
 			require.NoError(t, err)
-			models, err := service.Browse(emptyContext)
+			values, err := service.Browse(emptyContext)
 			require.NoError(t, err)
-			require.Len(t, models, 0)
+			require.Len(t, values, 0)
 		})
 
 		t.Run("with filters", func(t *testing.T) {
@@ -201,14 +201,14 @@ func TestDictService(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			trueModels, err := service.Delete(trueContext)
+			trueValues, err := service.Delete(trueContext)
 			require.NoError(t, err)
 
-			falseModels, err := service.Delete(falseContext)
+			falseValues, err := service.Delete(falseContext)
 			require.NoError(t, err)
 
-			models := append(trueModels, falseModels...)
-			require.Len(t, models, count)
+			values := append(trueValues, falseValues...)
+			require.Len(t, values, count)
 		})
 	})
 }

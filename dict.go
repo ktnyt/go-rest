@@ -86,13 +86,13 @@ func (d *Dict) Remove(key string) interface{} {
 		d.Keys[len(d.Keys)-1] = ""
 		d.Keys = d.Keys[:len(d.Keys)-1]
 
-		model := d.Values[i]
+		value := d.Values[i]
 
 		copy(d.Values[i:], d.Values[i+1:])
 		d.Values[len(d.Values)-1] = nil
 		d.Values = d.Values[:len(d.Values)-1]
 
-		return model
+		return value
 	}
 
 	return nil

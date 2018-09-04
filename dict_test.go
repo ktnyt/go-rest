@@ -39,11 +39,11 @@ func TestDict(t *testing.T) {
 	})
 
 	t.Run("can search values", func(t *testing.T) {
-		require.NotZero(t, len(d.Search(func(model interface{}) bool {
-			return !model.(*Todo).Done
+		require.NotZero(t, len(d.Search(func(value interface{}) bool {
+			return !value.(*Todo).Done
 		})))
-		require.Zero(t, len(d.Search(func(model interface{}) bool {
-			return model.(*Todo).Done
+		require.Zero(t, len(d.Search(func(value interface{}) bool {
+			return value.(*Todo).Done
 		})))
 	})
 
