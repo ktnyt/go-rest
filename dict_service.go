@@ -35,6 +35,9 @@ func (e KeyError) Error() string {
 // FilterFactory creates a filter from the given url parameters.
 type FilterFactory func(context.Context) Filter
 
+// Converter takes and interface and convets it to a Model.
+type Converter func(interface{}) Model
+
 // DictService provides a Dict service interface.
 type DictService struct {
 	Dict  *Dict
@@ -42,15 +45,17 @@ type DictService struct {
 
 	build   ModelBuilder
 	factory FilterFactory
+	convert Converter
 }
 
 // NewDictService returns a new Dict service.
-func NewDictService(build ModelBuilder, factory FilterFactory) Service {
+func NewDictService(build ModelBuilder, factory FilterFactory, convert Converter) Service {
 	return &DictService{
 		Dict:    NewDict(),
 		Count:   0,
 		build:   build,
 		factory: factory,
+		convert: convert,
 	}
 }
 
@@ -59,7 +64,7 @@ func (s *DictService) Browse(ctx context.Context) ([]Model, error) {
 	indices := s.Dict.Search(s.factory(ctx))
 	list := make([]Model, len(indices))
 	for j, i := range indices {
-		list[j] = s.Dict.Values[i]
+		list[j] = s.convert(s.Dict.Values[i])
 	}
 	return list, nil
 }
@@ -67,12 +72,6 @@ func (s *DictService) Browse(ctx context.Context) ([]Model, error) {
 // Delete Dict values filtered by URL parameters.
 func (s *DictService) Delete(ctx context.Context) ([]Model, error) {
 	indices := s.Dict.Search(s.factory(ctx))
-
-	if len(indices) == s.Dict.Len() {
-		list := s.Dict.Values
-		s.Dict.Clear()
-		return list, nil
-	}
 
 	keys := make([]string, len(indices))
 	for j, i := range indices {
@@ -83,7 +82,7 @@ func (s *DictService) Delete(ctx context.Context) ([]Model, error) {
 
 	for i, key := range keys {
 		if model := s.Dict.Remove(key); model != nil {
-			list[i] = model
+			list[i] = s.convert(model)
 		}
 	}
 
@@ -119,7 +118,7 @@ func (s *DictService) Select(key string) (Model, error) {
 		err := NewKeyError(key, false)
 		return nil, NewServiceError(err, http.StatusBadRequest)
 	}
-	return model, nil
+	return s.convert(model), nil
 }
 
 // Remove a value identified by the given key.
@@ -129,7 +128,7 @@ func (s *DictService) Remove(key string) (Model, error) {
 		err := NewKeyError(key, false)
 		return nil, NewServiceError(err, http.StatusBadRequest)
 	}
-	return model, nil
+	return s.convert(model), nil
 }
 
 // Update an entire value identified by the given key.
@@ -164,7 +163,7 @@ func (s *DictService) Modify(key string, reader io.Reader) (Model, error) {
 		return nil, NewServiceError(err, http.StatusBadRequest)
 	}
 
-	value := s.Dict.Values[index]
+	value := s.convert(s.Dict.Values[index])
 
 	if err := value.Merge(model); err != nil {
 		return nil, NewServiceError(err, http.StatusBadRequest)

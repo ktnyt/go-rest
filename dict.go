@@ -5,17 +5,17 @@ import (
 )
 
 // Filter tests if a value fulfills the given logic.
-type Filter func(Model) bool
+type Filter func(interface{}) bool
 
 // Dict is a container with guaranteed key ordering.
 type Dict struct {
 	Keys   []string
-	Values []Model
+	Values []interface{}
 }
 
 // NewDictWithCap creates a new Dict object with given capacity.
 func NewDictWithCap(n int) *Dict {
-	return &Dict{Keys: make([]string, 0, n), Values: make([]Model, 0, n)}
+	return &Dict{Keys: make([]string, 0, n), Values: make([]interface{}, 0, n)}
 }
 
 // NewDict creates a new Dict object.
@@ -31,7 +31,7 @@ func (d *Dict) Index(key string) int {
 }
 
 // Get a value for a given key. Returns nil if the key does not exist.
-func (d *Dict) Get(key string) Model {
+func (d *Dict) Get(key string) interface{} {
 	if i := d.Index(key); i < d.Len() && d.Keys[i] == key {
 		return d.Values[i]
 	}
@@ -39,7 +39,7 @@ func (d *Dict) Get(key string) Model {
 }
 
 // Set a value for the given key. Returns false if the key does not exist.
-func (d *Dict) Set(key string, value Model) bool {
+func (d *Dict) Set(key string, value interface{}) bool {
 	if i := d.Index(key); i < d.Len() && d.Keys[i] == key {
 		d.Values[i] = value
 		return true
@@ -48,7 +48,7 @@ func (d *Dict) Set(key string, value Model) bool {
 }
 
 // Insert a value for the given key. Returns false if the key exists.
-func (d *Dict) Insert(key string, value Model) bool {
+func (d *Dict) Insert(key string, value interface{}) bool {
 	if d.Len() == 0 {
 		d.Keys = append(d.Keys, key)
 		d.Values = append(d.Values, value)
@@ -80,7 +80,7 @@ func (d *Dict) Insert(key string, value Model) bool {
 }
 
 // Remove a value for the given key. Returns nil if the key does not exist.
-func (d *Dict) Remove(key string) Model {
+func (d *Dict) Remove(key string) interface{} {
 	if i := d.Index(key); i < d.Len() && d.Keys[i] == key {
 		copy(d.Keys[i:], d.Keys[i+1:])
 		d.Keys[len(d.Keys)-1] = ""
@@ -101,7 +101,7 @@ func (d *Dict) Remove(key string) Model {
 // ClearWithCap initializes the content with the given capacity.
 func (d *Dict) ClearWithCap(n int) {
 	d.Keys = make([]string, 0, n)
-	d.Values = make([]Model, 0, n)
+	d.Values = make([]interface{}, 0, n)
 }
 
 // Clear the entire content.

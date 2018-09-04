@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 )
@@ -20,7 +21,7 @@ func NewServiceError(err error, code int) ServiceError {
 
 // Error satisfies the error interface.
 func (e ServiceError) Error() string {
-	return e.Err.Error()
+	return fmt.Sprintf("%d: %s", e.Code, e.Err.Error())
 }
 
 // HandleError handles the given error gracefully.

@@ -38,7 +38,7 @@ func (t *Todo) MakeKey(i int) string {
 	return t.Key
 }
 
-func (t *Todo) Merge(other rest.Model) error {
+func (t *Todo) Merge(other interface{}) error {
 	switch other := other.(type) {
 	case *Todo:
 		t.Content = other.Content
@@ -71,7 +71,7 @@ func InvalidTodo() *Todo {
 }
 
 func Filter(ctx context.Context) rest.Filter {
-	return func(model rest.Model) bool {
+	return func(model interface{}) bool {
 		switch done := ctx.Value("done").(type) {
 		case string:
 			if done == "true" {
@@ -87,10 +87,14 @@ func Filter(ctx context.Context) rest.Filter {
 	}
 }
 
+func Convert(model interface{}) rest.Model {
+	return model.(*Todo)
+}
+
 var emptyContext = context.Background()
 var trueContext = context.WithValue(emptyContext, "done", "true")
 var falseContext = context.WithValue(emptyContext, "done", "false")
 
 func NewTodoDictService() rest.Service {
-	return rest.NewDictService(NewTodo, Filter)
+	return rest.NewDictService(NewTodo, Filter, Convert)
 }

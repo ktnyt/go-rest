@@ -10,7 +10,7 @@ import (
 )
 
 func TestDictService(t *testing.T) {
-	service := rest.NewDictService(NewTodo, Filter)
+	service := rest.NewDictService(NewTodo, Filter, Convert)
 	count := 10
 	trueKeys := make([]string, 0)
 	falseKeys := make([]string, 0)

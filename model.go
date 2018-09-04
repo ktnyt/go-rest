@@ -8,8 +8,8 @@ type Model interface {
 	// MakeKey creates a new key given an integer.
 	MakeKey(int) string
 
-	// Merge another Model into this Model.
-	Merge(Model) error
+	// Merge another interface into this Model.
+	Merge(interface{}) error
 }
 
 // ModelBuilder will construct a Model given no arguments.
