@@ -49,23 +49,26 @@ type Service interface {
 	Modify(string, io.Reader) (Model, error)
 }
 
+// PK is the default primary key.
+const PK = "pk"
+
 // ServiceBuilder will construct a Service given no arguments.
 type ServiceBuilder func() Service
 
 type serviceInterface struct {
 	service Service
-	pkparam Param
+	pkparam string
 }
 
 // NewServiceInterface creates an Interface wrapped around the given Service.
 func NewServiceInterface(service Service) Interface {
-	return NewServiceInterfaceWithPKParam(service, "pk")
+	return NewServiceInterfaceWithPKParam(service, PK)
 }
 
 // NewServiceInterfaceWithPKParam creates a ServiceInterface for the given
 // primary key parameter value.
 func NewServiceInterfaceWithPKParam(service Service, pkparam string) Interface {
-	return serviceInterface{service: service, pkparam: Param(pkparam)}
+	return serviceInterface{service: service, pkparam: pkparam}
 }
 
 func (i serviceInterface) Browse(w http.ResponseWriter, r *http.Request) {
