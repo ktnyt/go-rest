@@ -115,7 +115,7 @@ func (s *DictService) Create(reader io.Reader) (Model, error) {
 func (s *DictService) Select(key string) (Model, error) {
 	value := s.Dict.Get(key)
 	if value == nil {
-		err := NewKeyError(key, false)
+		err := NewKeyError(key, true)
 		return nil, NewServiceError(err, http.StatusBadRequest)
 	}
 	return s.convert(value), nil
@@ -125,7 +125,7 @@ func (s *DictService) Select(key string) (Model, error) {
 func (s *DictService) Remove(key string) (Model, error) {
 	value := s.Dict.Remove(key)
 	if value == nil {
-		err := NewKeyError(key, false)
+		err := NewKeyError(key, true)
 		return nil, NewServiceError(err, http.StatusBadRequest)
 	}
 	return s.convert(value), nil
@@ -143,7 +143,7 @@ func (s *DictService) Update(key string, reader io.Reader) (Model, error) {
 	}
 
 	if !s.Dict.Set(key, value) {
-		err := NewKeyError(key, false)
+		err := NewKeyError(key, true)
 		return nil, NewServiceError(err, http.StatusBadRequest)
 	}
 
@@ -159,7 +159,7 @@ func (s *DictService) Modify(key string, reader io.Reader) (Model, error) {
 
 	index := s.Dict.Index(key)
 	if index == s.Dict.Len() || s.Dict.Keys[index] != key {
-		err := NewKeyError(key, false)
+		err := NewKeyError(key, true)
 		return nil, NewServiceError(err, http.StatusBadRequest)
 	}
 
